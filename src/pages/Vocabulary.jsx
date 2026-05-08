@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import vocabData from '../data/hsk4_vocab.json';
 import VocabularyCard from '../components/VocabularyCard.jsx';
-import { readStorage, STORAGE_KEYS, toggleInList } from '../utils/storage.js';
+import { getUserData, STORAGE_KEYS, toggleUserListItem } from '../utils/storage.js';
 import { getExampleText, getPosText, getSenses, getSensesText } from '../utils/quizUtils.js';
 
 const pageSize = 50;
@@ -10,7 +10,7 @@ export default function Vocabulary() {
   const [query, setQuery] = useState('');
   const [pos, setPos] = useState('all');
   const [page, setPage] = useState(1);
-  const [learned, setLearned] = useState(() => readStorage(STORAGE_KEYS.learnedWords, []));
+  const [learned, setLearned] = useState(() => getUserData(STORAGE_KEYS.learnedWords, []));
 
   const partsOfSpeech = useMemo(() => {
     const values = new Set();
@@ -33,7 +33,7 @@ export default function Vocabulary() {
   const visibleWords = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   function toggleLearned(no) {
-    setLearned(toggleInList(STORAGE_KEYS.learnedWords, no));
+    setLearned(toggleUserListItem(STORAGE_KEYS.learnedWords, no));
   }
 
   function updateSearch(value) {

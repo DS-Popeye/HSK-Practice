@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import vocabData from '../data/hsk4_vocab.json';
 import AudioButton from '../components/AudioButton.jsx';
 import { buildMeaningQuiz, getExampleText, getPrimaryMeaning } from '../utils/quizUtils.js';
-import { readStorage, STORAGE_KEYS, writeStorage } from '../utils/storage.js';
+import { getCurrentUser, getUserData, setUserData, STORAGE_KEYS } from '../utils/storage.js';
 
 const practiceWords = vocabData.slice(0, 600);
 const totalQuestions = 10;
@@ -17,7 +17,7 @@ function safeArray(value) {
 }
 
 function saveHardWord(word) {
-  const current = safeArray(readStorage(STORAGE_KEYS.quizHardWords, []));
+  const current = safeArray(getUserData(STORAGE_KEYS.quizHardWords, []));
   const exists = current.some((item) => String(item.no) === String(word.no));
   if (exists) return current;
 
@@ -31,14 +31,14 @@ function saveHardWord(word) {
       example: getExampleText(word)
     }
   ];
-  writeStorage(STORAGE_KEYS.quizHardWords, next);
+  setUserData(STORAGE_KEYS.quizHardWords, next);
   return next;
 }
 
-function exportResult({ userName, score, accuracy, hardWords }) {
+function exportResult({ learnerName, score, accuracy, hardWords }) {
   const lines = [
     'HSK Practice Quiz Result',
-    `Name: ${userName || 'Not provided'}`,
+    `Learner: ${learnerName || 'Unknown User'}`,
     `Date: ${new Date().toLocaleString()}`,
     `Score: ${score}/${totalQuestions}`,
     `Accuracy: ${accuracy}%`,
@@ -64,10 +64,12 @@ function exportResult({ userName, score, accuracy, hardWords }) {
 
 export default function Quiz() {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState('');
+  const currentUser = getCurrentUser();
+  const learnerName = currentUser?.displayName || 'Unknown User';
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [showPinyin, setShowPinyin] = useState(false);
   const [answers, setAnswers] = useState([]);
   const [sessionHardWords, setSessionHardWords] = useState([]);
   const [status, setStatus] = useState('start');
@@ -81,6 +83,7 @@ export default function Quiz() {
     setQuestions(createSession());
     setCurrentIndex(0);
     setSelectedAnswer('');
+    setShowPinyin(false);
     setAnswers([]);
     setSessionHardWords([]);
     setStatus('active');
@@ -90,13 +93,13 @@ export default function Quiz() {
     const correct = finalAnswers.filter((answer) => answer.correct).length;
     const wrong = totalQuestions - correct;
     const finalAccuracy = Math.round((correct / totalQuestions) * 100) || 0;
-    const history = safeArray(readStorage(STORAGE_KEYS.quizHistory, []));
+    const history = safeArray(getUserData(STORAGE_KEYS.quizHistory, []));
 
-    writeStorage(STORAGE_KEYS.quizHistory, [
+    setUserData(STORAGE_KEYS.quizHistory, [
       ...history,
       {
         id: `quiz-${Date.now()}`,
-        userName: userName.trim(),
+        userName: learnerName,
         date: new Date().toISOString(),
         totalQuestions,
         total: totalQuestions,
@@ -154,20 +157,30 @@ export default function Quiz() {
   function nextQuestion() {
     if (!selectedAnswer) return;
     setSelectedAnswer('');
+    setShowPinyin(false);
     setCurrentIndex((index) => Math.min(index + 1, totalQuestions - 1));
   }
 
   if (status === 'start') {
+    if (!currentUser) {
+      return (
+        <section className="page quizPage">
+          <article className="quizStartCard">
+            <p className="eyebrow">Quiz</p>
+            <h1>Quiz</h1>
+            <p>Please login first to start the quiz.</p>
+          </article>
+        </section>
+      );
+    }
+
     return (
       <section className="page quizPage">
         <article className="quizStartCard">
           <p className="eyebrow">Quiz</p>
           <h1>Quiz</h1>
           <p>Each session has 10 questions from the first 600 HSK words. Choose the correct meaning.</p>
-          <label className="quizNameField">
-            <span>Use a name to save quiz results and hard words on this browser.</span>
-            <input value={userName} onChange={(event) => setUserName(event.target.value)} placeholder="Your name (optional)" />
-          </label>
+          <p className="currentLearner">Current learner: {learnerName}</p>
           <button type="button" className="primaryButton" onClick={startQuiz}>Start Quiz</button>
         </article>
       </section>
@@ -208,7 +221,7 @@ export default function Quiz() {
           <div className="buttonBar quizResultActions">
             <button type="button" className="primaryButton" onClick={startQuiz}>New 10 Questions</button>
             <button type="button" onClick={() => navigate('/flashcards')}>Review Flashcards</button>
-            <button type="button" onClick={() => exportResult({ userName: userName.trim(), score: correctCount, accuracy, hardWords: sessionHardWords })}>
+            <button type="button" onClick={() => exportResult({ learnerName, score: correctCount, accuracy, hardWords: sessionHardWords })}>
               Export Result
             </button>
           </div>
@@ -230,7 +243,10 @@ export default function Quiz() {
 
         <div className="quizPrompt">
           <strong>{currentQuestion?.word?.hanzi || 'Unknown'}</strong>
-          <span>{currentQuestion?.word?.pinyin || 'No pinyin'}</span>
+          {showPinyin && <span>{currentQuestion?.word?.pinyin || 'No pinyin'}</span>}
+          <button type="button" className="pinyinToggleButton" onClick={() => setShowPinyin((value) => !value)}>
+            {showPinyin ? '🙈 Hide Pinyin' : '👁 Show Pinyin'}
+          </button>
           <AudioButton hanzi={currentQuestion?.word?.hanzi} />
         </div>
 

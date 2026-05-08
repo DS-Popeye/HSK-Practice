@@ -143,6 +143,84 @@ a {
   color: var(--red-dark);
 }
 
+.userArea {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.userArea span {
+  color: var(--red-dark);
+  font-weight: 900;
+}
+
+.userArea button {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.88rem;
+}
+
+.loginPage {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 1.2rem;
+  background: var(--paper);
+}
+
+.loginCard {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 460px);
+  border: 1px solid rgba(121, 96, 61, 0.16);
+  border-radius: 16px;
+  padding: clamp(1.2rem, 4vw, 2rem);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.loginCard > * {
+  min-width: 0;
+}
+
+.loginCard p,
+.loginCard small {
+  overflow-wrap: anywhere;
+}
+
+.loginCard h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3rem);
+  letter-spacing: 0;
+}
+
+.loginCard label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.loginCard small {
+  color: var(--muted);
+}
+
+.loginError {
+  margin: 0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: #f9ded9;
+  color: var(--red-dark);
+  font-weight: 800;
+}
+
+.welcomeLine {
+  margin: 0 0 0.6rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 900;
+}
+
 .pageShell {
   max-width: 1220px;
   margin: 0 auto;
@@ -360,7 +438,8 @@ a {
 }
 
 .vocabCard h3,
-.flashFront h2 {
+.flashFront h2,
+.flashBack h2 {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 2.3rem;
   font-weight: 700;
@@ -405,13 +484,110 @@ a {
 
 .flashcard {
   display: grid;
-  place-items: center;
   gap: 1.2rem;
   min-height: 390px;
   border-radius: 16px;
   padding: 2rem;
   text-align: center;
   background: var(--paper);
+}
+
+.flashcard > * {
+  justify-self: center;
+}
+
+.flashSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.flashSummaryCard {
+  display: grid;
+  gap: 0.4rem;
+  border: 1px solid rgba(121, 96, 61, 0.16);
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.flashSummaryCard span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.flashSummaryCard strong {
+  color: var(--ink);
+  font-size: 1.8rem;
+}
+
+.flashSummaryCard small {
+  color: var(--muted);
+}
+
+.flashCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  text-align: left;
+}
+
+.flashCardHeader strong,
+.flashCardHeader small {
+  display: block;
+}
+
+.flashCardHeader strong {
+  font-size: 1.05rem;
+}
+
+.flashCardHeader small {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.flashBadges {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.flashBadges span {
+  border-radius: 999px;
+  padding: 0.4rem 0.65rem;
+  background: var(--soft);
+  color: var(--red-dark);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.flashcardMain {
+  cursor: pointer;
+  user-select: none;
+}
+
+.flashcardMain:focus-visible {
+  outline: 3px solid rgba(183, 55, 47, 0.35);
+  outline-offset: 3px;
+}
+
+.flashFace {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+}
+
+.flashHint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 800;
 }
 
 .cardCounter,
@@ -435,8 +611,22 @@ a {
 
 .flashBack {
   display: grid;
+  justify-items: center;
   gap: 0.5rem;
   max-width: 620px;
+}
+
+.flashBack h2 {
+  font-size: clamp(3.5rem, 10vw, 6rem);
+}
+
+.flashCountdown {
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  background: #f9ded9;
+  color: var(--red-dark);
+  font-size: 1.1rem;
+  font-weight: 900;
 }
 
 .questionList {
@@ -604,6 +794,15 @@ a {
   color: var(--muted);
 }
 
+.currentLearner {
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  background: var(--soft);
+  color: var(--red-dark);
+  font-weight: 900;
+  justify-self: center;
+}
+
 .quizTopline,
 .quizResultStats {
   display: flex;
@@ -647,6 +846,12 @@ a {
 .quizPrompt span {
   color: var(--red-dark);
   font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.pinyinToggleButton {
+  background: var(--soft);
+  color: var(--red-dark);
   font-weight: 800;
 }
 
@@ -784,11 +989,16 @@ a {
     justify-content: flex-start;
   }
 
+  .userArea {
+    justify-content: flex-start;
+  }
+
   .navLinks a {
     padding: 0.55rem 0.65rem;
   }
 
   .statsGrid,
+  .flashSummaryGrid,
   .toolbar,
   .optionsGrid {
     grid-template-columns: 1fr;
@@ -824,5 +1034,14 @@ a {
   .quizResultActions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .flashCardHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .flashBadges {
+    justify-content: flex-start;
   }
 }

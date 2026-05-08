@@ -2,18 +2,25 @@ import { Link } from 'react-router-dom';
 import vocabData from '../data/hsk4_vocab.json';
 import grammarData from '../data/grammar.json';
 import ProgressCard from '../components/ProgressCard.jsx';
-import { formatDate, readStorage, STORAGE_KEYS } from '../utils/storage.js';
+import { formatDate, getCurrentUser, getUserData, STORAGE_KEYS } from '../utils/storage.js';
 
 const practiceCount = Math.min(600, vocabData.length);
 
 export default function Dashboard() {
-  const learnedWords = readStorage(STORAGE_KEYS.learnedWords, []);
-  const quizHistory = readStorage(STORAGE_KEYS.quizHistory, []);
-  const mockHistory = readStorage(STORAGE_KEYS.mockHistory, []);
-  const grammarStudied = readStorage(STORAGE_KEYS.grammarStudied, []);
-  const scores = [...quizHistory, ...mockHistory].map((item) => item.scorePercent).filter(Number.isFinite);
+  const currentUser = getCurrentUser();
+  const learnedWords = getUserData(STORAGE_KEYS.learnedWords, []);
+  const quizHistory = getUserData(STORAGE_KEYS.quizHistory, []);
+  const mockHistory = getUserData(STORAGE_KEYS.mockHistory, []);
+  const grammarStudied = getUserData(STORAGE_KEYS.grammarStudied, []);
+  const hardWords = getUserData(STORAGE_KEYS.quizHardWords, []);
+  const safeLearnedWords = Array.isArray(learnedWords) ? learnedWords : [];
+  const safeQuizHistory = Array.isArray(quizHistory) ? quizHistory : [];
+  const safeMockHistory = Array.isArray(mockHistory) ? mockHistory : [];
+  const safeGrammarStudied = Array.isArray(grammarStudied) ? grammarStudied : [];
+  const safeHardWords = Array.isArray(hardWords) ? hardWords : [];
+  const scores = [...safeQuizHistory, ...safeMockHistory].map((item) => item.scorePercent).filter(Number.isFinite);
   const averageScore = scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : 0;
-  const recent = [...quizHistory.map((item) => ({ ...item, type: 'Quiz' })), ...mockHistory.map((item) => ({ ...item, type: 'Mock Test' }))]
+  const recent = [...safeQuizHistory.map((item) => ({ ...item, type: 'Quiz' })), ...safeMockHistory.map((item) => ({ ...item, type: 'Mock Test' }))]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 
@@ -30,6 +37,7 @@ export default function Dashboard() {
       <div className="heroBand">
         <div>
           <p className="eyebrow">HSK 4 study desk</p>
+          <p className="welcomeLine">Welcome, {currentUser?.displayName}</p>
           <h1>Build steady vocabulary, grammar, and test confidence.</h1>
           <p>Everything here runs locally from your JSON and MP3 files, with progress saved in this browser.</p>
         </div>
@@ -38,9 +46,9 @@ export default function Dashboard() {
       <div className="statsGrid">
         <ProgressCard label="Total vocabulary" value={vocabData.length} detail="Imported from JSON" />
         <ProgressCard label="Practice words" value={practiceCount} detail="Used in drills" />
-        <ProgressCard label="Learned words" value={learnedWords.length} detail={`${Math.round((learnedWords.length / vocabData.length) * 100) || 0}% complete`} />
-        <ProgressCard label="Quiz attempts" value={quizHistory.length} />
-        <ProgressCard label="Mock attempts" value={mockHistory.length} />
+        <ProgressCard label="Learned words" value={safeLearnedWords.length} detail={`${Math.round((safeLearnedWords.length / vocabData.length) * 100) || 0}% complete`} />
+        <ProgressCard label="Quiz attempts" value={safeQuizHistory.length} />
+        <ProgressCard label="Mock attempts" value={safeMockHistory.length} />
         <ProgressCard label="Average score" value={`${averageScore}%`} />
       </div>
 
@@ -72,8 +80,8 @@ export default function Dashboard() {
         </section>
         <section className="panel">
           <h2>Study coverage</h2>
-          <div className="meter"><span style={{ width: `${Math.min(100, (learnedWords.length / vocabData.length) * 100)}%` }} /></div>
-          <p>{learnedWords.length} words learned and {grammarStudied.length} grammar points studied.</p>
+          <div className="meter"><span style={{ width: `${Math.min(100, (safeLearnedWords.length / vocabData.length) * 100)}%` }} /></div>
+          <p>{safeLearnedWords.length} words learned, {safeGrammarStudied.length} grammar points studied, and {safeHardWords.length} hard words saved.</p>
         </section>
       </div>
     </section>

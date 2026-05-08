@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import vocabData from '../data/hsk4_vocab.json';
 import grammarData from '../data/grammar.json';
 import { buildGrammarQuestions, createVocabularyQuestion, shuffleArray } from '../utils/quizUtils.js';
-import { readStorage, STORAGE_KEYS, writeStorage } from '../utils/storage.js';
+import { getUserData, setUserData, STORAGE_KEYS } from '../utils/storage.js';
 
 const practiceWords = vocabData.slice(0, 600);
 const testMinutes = 60;
@@ -50,9 +50,10 @@ export default function MockTest() {
   function submitTest() {
     setSubmitted(true);
     const finalScore = questions.reduce((sum, question) => sum + (answers[question.id] === question.answer ? 1 : 0), 0);
-    const history = readStorage(STORAGE_KEYS.mockHistory, []);
-    writeStorage(STORAGE_KEYS.mockHistory, [
-      ...history,
+    const history = getUserData(STORAGE_KEYS.mockHistory, []);
+    const safeHistory = Array.isArray(history) ? history : [];
+    setUserData(STORAGE_KEYS.mockHistory, [
+      ...safeHistory,
       { date: new Date().toISOString(), score: finalScore, total: questions.length, scorePercent: Math.round((finalScore / questions.length) * 100) }
     ]);
   }

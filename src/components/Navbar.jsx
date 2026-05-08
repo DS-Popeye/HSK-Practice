@@ -9,7 +9,7 @@ const links = [
   ['/mock-test', 'HSK Mock']
 ];
 
-export default function Navbar() {
+export default function Navbar({ currentUser, onLogout, onSwitchUser }) {
   return (
     <nav className="navbar">
       <div className="brand">
@@ -25,6 +25,11 @@ export default function Navbar() {
             {label}
           </NavLink>
         ))}
+      </div>
+      <div className="userArea">
+        <span>{currentUser?.displayName}</span>
+        <button type="button" onClick={onSwitchUser}>Switch User</button>
+        <button type="button" onClick={onLogout}>Logout</button>
       </div>
     </nav>
   );

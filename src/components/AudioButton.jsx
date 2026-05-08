@@ -1,51 +1,88 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { findAudioPath } from '../utils/audioUtils.js';
+import { useEffect, useRef, useState } from 'react';
+import { getAudioCandidates } from '../utils/audioUtils.js';
 
 export default function AudioButton({ hanzi, compact = false }) {
-  const [audioPath, setAudioPath] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState('idle');
   const audioRef = useRef(null);
 
   useEffect(() => {
-    let cancelled = false;
-
-    setAudioPath(null);
-    setLoading(Boolean(hanzi));
-
-    if (!hanzi) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    findAudioPath(hanzi).then((path) => {
-      if (!cancelled) {
-        setAudioPath(path);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setStatus('idle');
   }, [hanzi]);
 
-  const label = useMemo(() => {
-    if (loading) return compact ? '...' : 'Checking audio';
-    return audioPath ? (compact ? 'Play' : 'Play audio') : (compact ? 'No audio' : 'Audio missing');
-  }, [audioPath, compact, loading]);
+  async function tryPlay(src) {
+    return new Promise((resolve, reject) => {
+      const audio = new Audio();
+      audio.preload = 'none';
+      audioRef.current = audio;
 
-  function playAudio() {
-    if (!audioPath) return;
-    audioRef.current?.play().catch(() => {});
+      const cleanup = () => {
+        audio.oncanplaythrough = null;
+        audio.onerror = null;
+      };
+
+      audio.oncanplaythrough = () => {
+        cleanup();
+        resolve(audio);
+      };
+      audio.onerror = () => {
+        cleanup();
+        reject(new Error('Audio not found'));
+      };
+      audio.onended = () => {
+        setStatus('idle');
+        if (audioRef.current === audio) audioRef.current = null;
+      };
+
+      audio.src = src;
+      audio.play().then(() => {
+        cleanup();
+        resolve(audio);
+      }).catch((error) => {
+        cleanup();
+        reject(error);
+      });
+    });
   }
 
+  async function playAudio(event) {
+    event.stopPropagation();
+    if (!hanzi || status === 'loading') return;
+
+    audioRef.current?.pause();
+    setStatus('loading');
+
+    for (const src of getAudioCandidates(hanzi)) {
+      try {
+        await tryPlay(src);
+        setStatus('playing');
+        return;
+      } catch {
+        // Try the next filename candidate.
+      }
+    }
+
+    audioRef.current = null;
+    setStatus('missing');
+  }
+
+  const label = {
+    idle: compact ? '音' : 'Play audio',
+    loading: compact ? '...' : 'Loading...',
+    playing: compact ? 'Playing' : 'Playing...',
+    missing: compact ? 'No audio' : 'No audio'
+  }[status];
+
   return (
-    <>
-      <button className="iconButton" type="button" onClick={playAudio} disabled={!audioPath || loading} title={label}>
-        {compact ? '音' : label}
-      </button>
-      {audioPath && <audio ref={audioRef} src={audioPath} preload="none" />}
-    </>
+    <button
+      className="iconButton"
+      type="button"
+      onClick={playAudio}
+      disabled={!hanzi || status === 'loading' || status === 'missing'}
+      title={label}
+    >
+      {label}
+    </button>
   );
 }

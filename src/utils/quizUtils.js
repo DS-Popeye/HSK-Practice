@@ -21,6 +21,17 @@ export function getPrimaryMeaning(word) {
   return getSenses(word)[0]?.meaning || 'No meaning available';
 }
 
+export function getHskLevelByNo(no) {
+  const n = Number(no);
+
+  if (n >= 1 && n <= 150) return 'HSK 1';
+  if (n >= 151 && n <= 300) return 'HSK 2';
+  if (n >= 301 && n <= 600) return 'HSK 3';
+  if (n >= 601 && n <= 1200) return 'HSK 4';
+
+  return 'HSK';
+}
+
 export function shuffleArray(items) {
   return [...(Array.isArray(items) ? items : [])].sort(() => Math.random() - 0.5);
 }

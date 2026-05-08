@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import grammarData from '../data/grammar.json';
-import { readStorage, STORAGE_KEYS, toggleInList } from '../utils/storage.js';
+import { getUserData, STORAGE_KEYS, toggleUserListItem } from '../utils/storage.js';
 
 export default function Grammar() {
   const [query, setQuery] = useState('');
-  const [studied, setStudied] = useState(() => readStorage(STORAGE_KEYS.grammarStudied, []));
+  const [studied, setStudied] = useState(() => getUserData(STORAGE_KEYS.grammarStudied, []));
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -13,7 +13,7 @@ export default function Grammar() {
   }, [query]);
 
   function toggleStudied(id) {
-    setStudied(toggleInList(STORAGE_KEYS.grammarStudied, id));
+    setStudied(toggleUserListItem(STORAGE_KEYS.grammarStudied, id));
   }
 
   return (
